@@ -25,7 +25,6 @@
 #'  with text placed before the output to put the output into context. For example a title.
 #' @param post_output (`shiny.tag`) optional, text or UI element to be displayed after the module's output,
 #' adding context or further instructions. Elements like `shiny::helpText()` are useful.
-#'
 #' @param alpha (`integer(1)` or `integer(3)`) optional, specifies point opacity.
 #' - When the length of `alpha` is one: the plot points will have a fixed opacity.
 #' - When the length of `alpha` is three: the plot points opacity are dynamically adjusted based on
@@ -34,6 +33,12 @@
 #' - When the length of `size` is one: the plot point sizes will have a fixed size.
 #' - When the length of `size` is three: the plot points size are dynamically adjusted based on
 #' vector of `value`, `min`, and `max`.
+#' @param decorators `r lifecycle::badge("experimental")`
+#' (named `list` of lists of `teal_transform_module`) optional,
+#' decorator for tables or plots included in the module output reported.
+#' The decorators are applied to the respective output objects.
+#'
+#' See section "Decorating Module" below for more details.
 #'
 #' @return Object of class `teal_module` to be used in `teal` applications.
 #'
@@ -83,10 +88,10 @@ add_facet_labels <- function(p, xfacet_label = NULL, yfacet_label = NULL) {
   checkmate::assert_character(xfacet_label, null.ok = TRUE, min.len = 1)
   checkmate::assert_character(yfacet_label, null.ok = TRUE, min.len = 1)
   if (is.null(xfacet_label) && is.null(yfacet_label)) {
-    return(ggplotGrob(p))
+    return(ggplot2::ggplotGrob(p))
   }
   grid::grid.grabExpr({
-    g <- ggplotGrob(p)
+    g <- ggplot2::ggplotGrob(p)
 
     # we are going to replace these, so we make sure they have nothing in them
     checkmate::assert_class(g$grobs[[grep("xlab-t", g$layout$name, fixed = TRUE)]], "zeroGrob")
@@ -248,7 +253,7 @@ include_css_files <- function(pattern = "*") {
   if (length(css_files) == 0) {
     return(NULL)
   }
-  shiny::singleton(shiny::tags$head(lapply(css_files, shiny::includeCSS)))
+  singleton(tags$head(lapply(css_files, includeCSS)))
 }
 
 #' JavaScript condition to check if a specific tab is active
@@ -277,4 +282,118 @@ assert_single_selection <- function(x,
     stop("'", .var.name, "' should not allow multiple selection")
   }
   invisible(TRUE)
+}
+
+#' Wrappers around `srv_transform_teal_data` that allows to decorate the data
+#' @inheritParams teal::srv_transform_teal_data
+#' @param expr (`expression` or `reactive`) to evaluate on the output of the decoration.
+#' When an expression it must be inline code. See [within()]
+#' Default is `NULL` which won't evaluate any appending code.
+#' @param expr_is_reactive (`logical(1)`) whether `expr` is a reactive expression
+#' that skips defusing the argument.
+#' @details
+#' `srv_decorate_teal_data` is a wrapper around `srv_transform_teal_data` that
+#' allows to decorate the data with additional expressions.
+#' When original `teal_data` object is in error state, it will show that error
+#' first.
+#'
+#' @keywords internal
+srv_decorate_teal_data <- function(id, data, decorators, expr, expr_is_reactive = FALSE) {
+  checkmate::assert_class(data, classes = "reactive")
+  checkmate::assert_list(decorators, "teal_transform_module")
+  checkmate::assert_flag(expr_is_reactive)
+
+  missing_expr <- missing(expr)
+  if (!missing_expr && !expr_is_reactive) {
+    expr <- dplyr::enexpr(expr) # Using dplyr re-export to avoid adding rlang to Imports
+  }
+
+  moduleServer(id, function(input, output, session) {
+    decorated_output <- srv_transform_teal_data("inner", data = data, transformators = decorators)
+
+    reactive({
+      data_out <- try(data(), silent = TRUE)
+      if (inherits(data_out, "qenv.error")) {
+        data()
+      } else {
+        # ensure original errors are displayed and `eval_code` is never executed with NULL
+        req(data(), decorated_output())
+        if (missing_expr) {
+          decorated_output()
+        } else if (expr_is_reactive) {
+          teal.code::eval_code(decorated_output(), expr())
+        } else {
+          teal.code::eval_code(decorated_output(), expr)
+        }
+      }
+    })
+  })
+}
+
+#' @rdname srv_decorate_teal_data
+#' @details
+#' `ui_decorate_teal_data` is a wrapper around `ui_transform_teal_data`.
+#' @keywords internal
+ui_decorate_teal_data <- function(id, decorators, ...) {
+  teal::ui_transform_teal_data(NS(id, "inner"), transformators = decorators, ...)
+}
+
+#' Internal function to check if decorators is a valid object
+#' @noRd
+check_decorators <- function(x, names = NULL) { # nolint: object_name.
+
+  check_message <- checkmate::check_list(x, names = "named")
+
+  if (!is.null(names)) {
+    if (isTRUE(check_message)) {
+      if (length(names(x)) != length(unique(names(x)))) {
+        check_message <- sprintf(
+          "The `decorators` must contain unique names from these names: %s.",
+          paste(names, collapse = ", ")
+        )
+      }
+    } else {
+      check_message <- sprintf(
+        "The `decorators` must be a named list from these names: %s.",
+        paste(names, collapse = ", ")
+      )
+    }
+  }
+
+  if (!isTRUE(check_message)) {
+    return(check_message)
+  }
+
+  valid_elements <- vapply(
+    x,
+    checkmate::test_class,
+    classes = "teal_transform_module",
+    FUN.VALUE = logical(1L)
+  )
+
+  if (all(valid_elements)) {
+    return(TRUE)
+  }
+
+  "Make sure that the named list contains 'teal_transform_module' objects created using `teal_transform_module()`."
+}
+#' Internal assertion on decorators
+#' @noRd
+assert_decorators <- checkmate::makeAssertionFunction(check_decorators)
+
+#' Subset decorators based on the scope
+#'
+#' @param scope (`character`) a character vector of decorator names to include.
+#' @param decorators (named `list`) of list decorators to subset.
+#'
+#' @return Subsetted list with all decorators to include.
+#' It can be an empty list if none of the scope exists in `decorators` argument.
+#' @keywords internal
+select_decorators <- function(decorators, scope) {
+  checkmate::assert_character(scope, null.ok = TRUE)
+  if (scope %in% names(decorators)) {
+    decorators[scope]
+  } else {
+    list()
+  }
 }

@@ -16,10 +16,8 @@
 #' Names of list elements should correspond to the names of the datasets available in the app.
 #' If no entry is specified for a dataset, the first six variables from that
 #' dataset will initially be shown.
-#' @param datasets_selected (`character`) A vector of datasets which should be
-#' shown and in what order. Names in the vector have to correspond with datasets names.
-#' If vector of `length == 0` (default) then all datasets are shown.
-#' Note: Only datasets of the `data.frame` class are compatible.
+#' @param datasets_selected (`character`) `r lifecycle::badge("deprecated")` A vector of datasets which should be
+#' shown and in what order. Use `datanames` instead.
 #' @param dt_args (`named list`) Additional arguments to be passed to [DT::datatable()]
 #' (must not include `data` or `options`).
 #' @param dt_options (`named list`) The `options` argument to `DT::datatable`. By default
@@ -29,6 +27,10 @@
 #'
 #' @inherit shared_params return
 #'
+#' @examplesShinylive
+#' library(teal.modules.general)
+#' interactive <- function() TRUE
+#' {{ next_example }}
 #' @examples
 #' # general data example
 #' data <- teal_data()
@@ -36,7 +38,6 @@
 #'   require(nestcolor)
 #'   iris <- iris
 #' })
-#' datanames(data) <- c("iris")
 #'
 #' app <- init(
 #'   data = data,
@@ -45,7 +46,7 @@
 #'       variables_selected = list(
 #'         iris = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species")
 #'       ),
-#'       dt_args = list(caption = "ADSL Table Caption")
+#'       dt_args = list(caption = "IRIS Table Caption")
 #'     )
 #'   )
 #' )
@@ -53,14 +54,18 @@
 #'   shinyApp(app$ui, app$server)
 #' }
 #'
+#' @examplesShinylive
+#' library(teal.modules.general)
+#' interactive <- function() TRUE
+#' {{ next_example }}
+#' @examples
 #' # CDISC data example
 #' data <- teal_data()
 #' data <- within(data, {
 #'   require(nestcolor)
-#'   ADSL <- rADSL
+#'   ADSL <- teal.data::rADSL
 #' })
-#' datanames(data) <- "ADSL"
-#' join_keys(data) <- default_cdisc_join_keys[datanames(data)]
+#' join_keys(data) <- default_cdisc_join_keys[names(data)]
 #'
 #' app <- init(
 #'   data = data,
@@ -79,7 +84,8 @@
 #'
 tm_data_table <- function(label = "Data Table",
                           variables_selected = list(),
-                          datasets_selected = character(0),
+                          datasets_selected = deprecated(),
+                          datanames = if (missing(datasets_selected)) "all" else datasets_selected,
                           dt_args = list(),
                           dt_options = list(
                             searching = FALSE,
@@ -89,8 +95,9 @@ tm_data_table <- function(label = "Data Table",
                           ),
                           server_rendering = FALSE,
                           pre_output = NULL,
-                          post_output = NULL) {
-  logger::log_info("Initializing tm_data_table")
+                          post_output = NULL,
+                          transformators = list()) {
+  message("Initializing tm_data_table")
 
   # Start of assertions
   checkmate::assert_string(label)
@@ -104,8 +111,15 @@ tm_data_table <- function(label = "Data Table",
       }
     })
   }
-
-  checkmate::assert_character(datasets_selected, min.len = 0, min.chars = 1)
+  if (!missing(datasets_selected)) {
+    lifecycle::deprecate_soft(
+      when = "0.4.0",
+      what = "tm_data_table(datasets_selected)",
+      with = "tm_data_table(datanames)",
+      details = 'Use tm_data_table(datanames = "all") to keep the previous behavior and avoid this warning.',
+    )
+  }
+  checkmate::assert_character(datanames, min.len = 0, min.chars = 1, null.ok = TRUE)
   checkmate::assert(
     checkmate::check_list(dt_args, len = 0),
     checkmate::check_subset(names(dt_args), choices = names(formals(DT::datatable)))
@@ -114,16 +128,17 @@ tm_data_table <- function(label = "Data Table",
   checkmate::assert_flag(server_rendering)
   checkmate::assert_multi_class(pre_output, c("shiny.tag", "shiny.tag.list", "html"), null.ok = TRUE)
   checkmate::assert_multi_class(post_output, c("shiny.tag", "shiny.tag.list", "html"), null.ok = TRUE)
+
   # End of assertions
 
-  module(
+  ans <- module(
     label,
     server = srv_page_data_table,
     ui = ui_page_data_table,
-    datanames = if (length(datasets_selected) == 0) "all" else datasets_selected,
+    datanames = datanames,
     server_args = list(
+      datanames = if (is.null(datanames)) "all" else datanames,
       variables_selected = variables_selected,
-      datasets_selected = datasets_selected,
       dt_args = dt_args,
       dt_options = dt_options,
       server_rendering = server_rendering
@@ -131,17 +146,18 @@ tm_data_table <- function(label = "Data Table",
     ui_args = list(
       pre_output = pre_output,
       post_output = post_output
-    )
+    ),
+    transformators = transformators
   )
+  attr(ans, "teal_bookmarkable") <- TRUE
+  ans
 }
 
 # UI page module
-ui_page_data_table <- function(id,
-                               pre_output = NULL,
-                               post_output = NULL) {
+ui_page_data_table <- function(id, pre_output = NULL, post_output = NULL) {
   ns <- NS(id)
 
-  shiny::tagList(
+  tagList(
     include_css_files("custom"),
     teal.widgets::standard_layout(
       output = teal.widgets::white_small_well(
@@ -172,7 +188,7 @@ ui_page_data_table <- function(id,
 # Server page module
 srv_page_data_table <- function(id,
                                 data,
-                                datasets_selected,
+                                datanames,
                                 variables_selected,
                                 dt_args,
                                 dt_options,
@@ -180,57 +196,57 @@ srv_page_data_table <- function(id,
   checkmate::assert_class(data, "reactive")
   checkmate::assert_class(isolate(data()), "teal_data")
   moduleServer(id, function(input, output, session) {
+    teal.logger::log_shiny_input_changes(input, namespace = "teal.modules.general")
+
     if_filtered <- reactive(as.logical(input$if_filtered))
     if_distinct <- reactive(as.logical(input$if_distinct))
 
-    datanames <- isolate(teal.data::datanames(data()))
     datanames <- Filter(function(name) {
       is.data.frame(isolate(data())[[name]])
-    }, datanames)
+    }, if (identical(datanames, "all")) names(isolate(data())) else datanames)
 
-    if (!identical(datasets_selected, character(0))) {
-      checkmate::assert_subset(datasets_selected, datanames)
-      datanames <- datasets_selected
-    }
 
     output$dataset_table <- renderUI({
       do.call(
         tabsetPanel,
-        lapply(
-          datanames,
-          function(x) {
-            dataset <- isolate(data()[[x]])
-            choices <- names(dataset)
-            labels <- vapply(
-              dataset,
-              function(x) ifelse(is.null(attr(x, "label")), "", attr(x, "label")),
-              character(1)
-            )
-            names(choices) <- ifelse(
-              is.na(labels) | labels == "",
-              choices,
-              paste(choices, labels, sep = ": ")
-            )
-            variables_selected <- if (!is.null(variables_selected[[x]])) {
-              variables_selected[[x]]
-            } else {
-              utils::head(choices)
-            }
-            tabPanel(
-              title = x,
-              column(
-                width = 12,
-                div(
-                  class = "mt-4",
-                  ui_data_table(
-                    id = session$ns(x),
-                    choices = choices,
-                    selected = variables_selected
+        c(
+          list(id = session$ns("dataname_tab")),
+          lapply(
+            datanames,
+            function(x) {
+              dataset <- isolate(data()[[x]])
+              choices <- names(dataset)
+              labels <- vapply(
+                dataset,
+                function(x) ifelse(is.null(attr(x, "label")), "", attr(x, "label")),
+                character(1)
+              )
+              names(choices) <- ifelse(
+                is.na(labels) | labels == "",
+                choices,
+                paste(choices, labels, sep = ": ")
+              )
+              variables_selected <- if (!is.null(variables_selected[[x]])) {
+                variables_selected[[x]]
+              } else {
+                utils::head(choices)
+              }
+              tabPanel(
+                title = x,
+                column(
+                  width = 12,
+                  div(
+                    class = "mt-4",
+                    ui_data_table(
+                      id = session$ns(x),
+                      choices = choices,
+                      selected = variables_selected
+                    )
                   )
                 )
               )
-            )
-          }
+            }
+          )
         )
       )
     })
@@ -254,9 +270,7 @@ srv_page_data_table <- function(id,
 }
 
 # UI function for the data_table module
-ui_data_table <- function(id,
-                          choices,
-                          selected) {
+ui_data_table <- function(id, choices, selected) {
   ns <- NS(id)
 
   if (!is.null(selected)) {
@@ -296,31 +310,51 @@ srv_data_table <- function(id,
     iv <- shinyvalidate::InputValidator$new()
     iv$add_rule("variables", shinyvalidate::sv_required("Please select valid variable names"))
     iv$add_rule("variables", shinyvalidate::sv_in_set(
-      set = names(data()[[dataname]]), message_fmt = "Not all selected variables exist in the data"
+      set = names(isolate(data())[[dataname]]), message_fmt = "Not all selected variables exist in the data"
     ))
     iv$enable()
 
-    output$data_table <- DT::renderDataTable(server = server_rendering, {
-      teal::validate_inputs(iv)
-
+    data_table_data <- reactive({
       df <- data()[[dataname]]
-      variables <- input$variables
 
       teal::validate_has_data(df, min_nrow = 1L, msg = paste("data", dataname, "is empty"))
+      qenv <- teal.code::eval_code(
+        data(),
+        'library("dplyr");library("DT")' # nolint quotes
+      )
+      teal.code::eval_code(
+        qenv,
+        substitute(
+          expr = {
+            variables <- vars
+            dataframe_selected <- if (if_distinct) {
+              dplyr::count(dataname, dplyr::across(dplyr::all_of(variables)))
+            } else {
+              dataname[variables]
+            }
+            dt_args <- args
+            dt_args$options <- dt_options
+            if (!is.null(dt_rows)) {
+              dt_args$options$pageLength <- dt_rows
+            }
+            dt_args$data <- dataframe_selected
+            table <- do.call(DT::datatable, dt_args)
+          },
+          env = list(
+            dataname = as.name(dataname),
+            if_distinct = if_distinct(),
+            vars = input$variables,
+            args = dt_args,
+            dt_options = dt_options,
+            dt_rows = input$dt_rows
+          )
+        )
+      )
+    })
 
-      dataframe_selected <- if (if_distinct()) {
-        dplyr::count(df, dplyr::across(dplyr::all_of(variables)))
-      } else {
-        df[variables]
-      }
-
-      dt_args$options <- dt_options
-      if (!is.null(input$dt_rows)) {
-        dt_args$options$pageLength <- input$dt_rows
-      }
-      dt_args$data <- dataframe_selected
-
-      do.call(DT::datatable, dt_args)
+    output$data_table <- DT::renderDataTable(server = server_rendering, {
+      teal::validate_inputs(iv)
+      req(data_table_data())[["table"]]
     })
   })
 }

@@ -1,13 +1,3 @@
-local_logger_threshold <- function(threshold, envir = parent.frame()) {
-  old <- logger::log_threshold(namespace = "teal.modules.general")
-
-  # Equivalent to withr::defer
-  thunk <- as.call(list(function() logger::log_threshold(old, namespace = "teal.modules.general")))
-  do.call(base::on.exit, list(thunk, TRUE, FALSE), envir = envir)
-  logger::log_threshold(threshold, namespace = "teal.modules.general")
-  invisible(old)
-}
-
 # Create a mock data extact spec for tests
 mock_data_extract_spec <- function(dataname = "MOCK_DATASET",
                                    select_choices = sample(LETTERS, sample(2:10, 1)),
@@ -18,5 +8,19 @@ mock_data_extract_spec <- function(dataname = "MOCK_DATASET",
       choices = select_choices,
       multiple = select_multiple
     )
+  )
+}
+
+normalize_math_italic_text <- function(text) {
+  # Unicode range for mathematical italic (uppercase/lowercase)
+  math_italic <- intToUtf8(seq(0x1D434, 0x1D467)) # A-z
+
+  # Standard letters
+  latin <- c(LETTERS, letters)
+
+  # Replace math italic letters with standard ones
+  stringr::str_replace_all(
+    text,
+    setNames(latin, unlist(stringr::str_split(math_italic, "")))
   )
 }

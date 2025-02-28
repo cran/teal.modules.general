@@ -1,7 +1,26 @@
+# teal.modules.general 0.4.0
+
+### Enhancements
+* Introduced `transformators` and `decorators` argument to modules (#863).
+* Modules' Show R Code widgets include library calls to boost reproducibility (#786).
+* Removed `Show Warnings` modals from modules.
+
+### Miscellaneous
+* Soft deprecated `datasets_selected` argument of modules in favor of `datanames`.
+* Soft deprecated `show_metadata` argument of `tm_front_page()` in favor of `datanames`.
+* Added `teal.logger` functionality for logging changes in shiny inputs in all modules.
+* All example data is now sourced from `teal.data`.
+* Update `tm_g_distribution` to not start with validation error (#823).
+
+### Bug fixes
+* Fixed a bug in `tm_missing_data` in "Group by Subject" that was not using reactive data call (#772).
+* Fixed out-of-bound labels for `tm_g_regression` (#66).
+* Fixed a bug in `tm_g_association` where the app would crash when a selected categorical variable was a factor instead of a character (#645).
+
 # teal.modules.general 0.3.0
 
 ### Enhancements
-* Updated the package docs and vignettes with the new way of specifying data for `teal::init()`. The `data` argument will accept a `teal_data` object
+* Updated the package docs and vignettes with the new way of specifying data for `teal::init()`. The `data` argument will accept a `teal_data` object.
 
 ### Bug fixes
 * Outlier labels no longer appear out of bounds in `tm_a_regression`.
@@ -34,6 +53,7 @@
 * Removed `scda` package dependency from examples.
 * Replaced deprecated `ggplot2` functions `..count..`, `..density..` and `..prop..`.
 * Version bump on `forcats` dependency.
+* Replaced `scda` data generation functions with `random.cdisc.data`
 
 # teal.modules.general 0.2.15
 
