@@ -1,8 +1,8 @@
 Type: Package
 Package: teal.modules.general
 Title: General Modules for 'teal' Applications
-Version: 0.4.0
-Date: 2025-02-25
+Version: 0.4.1
+Date: 2025-04-01
 Authors@R: c(
     person("Dawid", "Kaledkowski", , "dawid.kaledkowski@roche.com", role = c("aut", "cre")),
     person("Pawel", "Rucki", , "pawel.rucki@roche.com", role = "aut"),
@@ -65,7 +65,7 @@ Encoding: UTF-8
 Language: en-US
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2025-02-28 14:28:07 UTC; unardid
+Packaged: 2025-04-01 18:33:59 UTC; unardid
 Author: Dawid Kaledkowski [aut, cre],
   Pawel Rucki [aut],
   Mahmoud Hallal [aut],
@@ -76,4 +76,4 @@ Author: Dawid Kaledkowski [aut, cre],
   F. Hoffmann-La Roche AG [cph, fnd]
 Maintainer: Dawid Kaledkowski <dawid.kaledkowski@roche.com>
 Repository: CRAN
-Date/Publication: 2025-02-28 15:10:02 UTC
+Date/Publication: 2025-04-01 21:20:01 UTC
