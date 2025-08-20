@@ -340,7 +340,8 @@ ui_g_bivariate <- function(id, ...) {
     ),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
       tags$label("Encodings", class = "text-primary"),
       teal.transform::datanames_input(args[c("x", "y", "row_facet", "col_facet", "color", "fill", "size")]),
@@ -372,8 +373,12 @@ ui_g_bivariate <- function(id, ...) {
       if (!is.null(args$row_facet) || !is.null(args$col_facet)) {
         tags$div(
           class = "data-extract-box",
-          tags$label("Facetting"),
-          shinyWidgets::switchInput(inputId = ns("facetting"), value = args$facet, size = "mini"),
+          tags$br(),
+          bslib::input_switch(
+            id = ns("facetting"),
+            label = "Facetting",
+            value = args$facet
+          ),
           conditionalPanel(
             condition = paste0("input['", ns("facetting"), "']"),
             tags$div(
@@ -404,7 +409,11 @@ ui_g_bivariate <- function(id, ...) {
         tags$div(
           class = "data-extract-box",
           tags$label("Color settings"),
-          shinyWidgets::switchInput(inputId = ns("coloring"), value = TRUE, size = "mini"),
+          bslib::input_switch(
+            id = ns("coloring"),
+            label = "Color settings",
+            value = TRUE
+          ),
           conditionalPanel(
             condition = paste0("input['", ns("coloring"), "']"),
             tags$div(
@@ -433,8 +442,9 @@ ui_g_bivariate <- function(id, ...) {
           )
         )
       },
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
           title = "Plot settings",
           checkboxInput(ns("rotate_xaxis_labels"), "Rotate X axis labels", value = args$rotate_xaxis_labels),
           checkboxInput(ns("swap_axes"), "Swap axes", value = args$swap_axes),
@@ -551,7 +561,7 @@ srv_g_bivariate <- function(id,
       datasets = data
     )
     qenv <- reactive(
-      teal.code::eval_code(data(), 'library("ggplot2");library("dplyr");library("teal.modules.general")') # nolint quotes
+      teal.code::eval_code(data(), 'library("ggplot2");library("dplyr")') # nolint: quotes.
     )
 
     anl_merged_q <- reactive({
@@ -702,7 +712,7 @@ srv_g_bivariate <- function(id,
         without_facet <- (is.null(nulled_row_facet_name) && is.null(nulled_col_facet_name)) || !facetting
 
         print_call <- if (without_facet) {
-          quote(print(plot))
+          quote(plot)
         } else {
           substitute(
             expr = {
@@ -762,7 +772,7 @@ srv_g_bivariate <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

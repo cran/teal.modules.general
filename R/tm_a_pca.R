@@ -229,14 +229,14 @@ ui_a_pca <- function(id, ...) {
   }
 
   tagList(
-    include_css_files("custom"),
     teal.widgets::standard_layout(
       output = teal.widgets::white_small_well(
         uiOutput(ns("all_plots"))
       ),
       encoding = tags$div(
         ### Reporter
-        teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+        teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+        tags$br(), tags$br(),
         ###
         tags$label("Encodings", class = "text-primary"),
         teal.transform::datanames_input(args["dat"]),
@@ -246,10 +246,10 @@ ui_a_pca <- function(id, ...) {
           data_extract_spec = args$dat,
           is_single_dataset = is_single_dataset_value
         ),
-        teal.widgets::panel_group(
-          teal.widgets::panel_item(
+        bslib::accordion(
+          open = TRUE,
+          bslib::accordion_panel(
             title = "Display",
-            collapsed = FALSE,
             checkboxGroupInput(
               ns("tables_display"),
               "Tables display",
@@ -291,7 +291,7 @@ ui_a_pca <- function(id, ...) {
               )
             )
           ),
-          teal.widgets::panel_item(
+          bslib::accordion_panel(
             title = "Pre-processing",
             radioButtons(
               ns("standardization"), "Standardization",
@@ -304,9 +304,8 @@ ui_a_pca <- function(id, ...) {
               selected = "none"
             )
           ),
-          teal.widgets::panel_item(
+          bslib::accordion_panel(
             title = "Selected plot specific settings",
-            collapsed = FALSE,
             uiOutput(ns("plot_settings")),
             conditionalPanel(
               condition = sprintf("input['%s'] == 'Biplot'", ns("plot_type")),
@@ -322,7 +321,7 @@ ui_a_pca <- function(id, ...) {
               )
             )
           ),
-          teal.widgets::panel_item(
+          bslib::accordion_panel(
             title = "Plot settings",
             collapsed = TRUE,
             conditionalPanel(
@@ -1119,7 +1118,6 @@ srv_a_pca <- function(id, data, reporter, filter_panel_api, dat, plot_height, pl
 
       validation()
       tags$div(
-        class = "overflow-scroll",
         uiOutput(session$ns("tbl_importance_ui")),
         uiOutput(session$ns("tbl_eigenvector_ui")),
         teal.widgets::plot_with_settings_ui(id = session$ns("pca_plot"))
@@ -1157,7 +1155,7 @@ srv_a_pca <- function(id, data, reporter, filter_panel_api, dat, plot_height, pl
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

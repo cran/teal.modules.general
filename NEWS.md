@@ -1,3 +1,22 @@
+# teal.modules.general 0.5.0
+
+### Breaking changes
+
+- Removed the `table` object decoration in `tm_missing_data` and `tm_outliers` (#899).
+- Removed the `summary_table` and `test_table` object decoration in `tm_g_distribution` (#897).
+
+### Bug fixes
+
+- Fixed "Add to Report" functionality in `tm_outliers`, `tm_missing_data` and `tm_g_distribution` modules (#899 and #897).
+- Fixes a bug in `tm_outliers` that fails when data has no join keys (#650).
+
+### Enhancements
+
+- Improved the layout and appearance of the app using `bslib` components.
+- Fixed deprecation warning for `tern::stack_grobs` in `tm_g_association` (#903).
+- Allow search feature in `tm_file_viewer` (#152).
+- Added `remove_zero_columns` to `tm_t_crosstable` to add an option to remove empty columns (#890)
+
 # teal.modules.general 0.4.1
 
 ### Bug fixes

@@ -362,17 +362,18 @@ ui_g_scatterplot <- function(id, ...) {
   )
 
   tagList(
-    include_css_files("custom"),
     teal.widgets::standard_layout(
       output = teal.widgets::white_small_well(
         teal.widgets::plot_with_settings_ui(id = ns("scatter_plot")),
-        tags$h1(tags$strong("Selected points:"), class = "text-center font-150p"),
+        tags$br(),
+        tags$h1(tags$strong("Selected points:"), style = "font-size: 150%;"),
         teal.widgets::get_dt_rows(ns("data_table"), ns("data_table_rows")),
         DT::dataTableOutput(ns("data_table"), width = "100%")
       ),
       encoding = tags$div(
         ### Reporter
-        teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+        teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+        tags$br(), tags$br(),
         ###
         tags$label("Encodings", class = "text-primary"),
         teal.transform::datanames_input(args[c("x", "y", "color_by", "size_by", "row_facet", "col_facet")]),
@@ -441,8 +442,9 @@ ui_g_scatterplot <- function(id, ...) {
           )
         },
         ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(args$decorators, "plot")),
-        teal.widgets::panel_group(
-          teal.widgets::panel_item(
+        bslib::accordion(
+          open = TRUE,
+          bslib::accordion_panel(
             title = "Plot settings",
             teal.widgets::optionalSliderInputValMinMax(ns("alpha"), "Opacity:", args$alpha, ticks = FALSE),
             teal.widgets::optionalSelectInput(
@@ -468,16 +470,16 @@ ui_g_scatterplot <- function(id, ...) {
             tags$div(
               id = ns("label_pos"),
               tags$div(tags$strong("Stats position")),
-              tags$div(class = "inline-block w-10", helpText("Left")),
+              tags$div(style = "display: inline-block; width: 70%;", helpText("Left")),
               tags$div(
-                class = "inline-block w-70",
+                style = "display: inline-block; width: 70%;",
                 teal.widgets::optionalSliderInput(
                   ns("pos"),
                   label = NULL,
                   min = 0, max = 1, value = .99, ticks = FALSE, step = .01
                 )
               ),
-              tags$div(class = "inline-block w-10", helpText("Right"))
+              tags$div(style = "display: inline-block; width: 10%;", helpText("Right"))
             ),
             teal.widgets::optionalSliderInput(
               ns("label_size"), "Stats font size",
@@ -715,7 +717,7 @@ srv_g_scatterplot <- function(id,
         ))
       }
 
-      teal::validate_has_data(ANL[, c(x_var, y_var)], 10, complete = TRUE, allow_inf = FALSE)
+      teal::validate_has_data(ANL[, c(x_var, y_var)], 1, complete = TRUE, allow_inf = FALSE)
 
       if (log_x) {
         validate(
@@ -1043,7 +1045,7 @@ srv_g_scatterplot <- function(id,
         validate(need(!input$add_density, "Brushing feature is currently not supported when plot has marginal density"))
       }
 
-      merged_data <- isolate(teal.code::dev_suppress(output_q()[["ANL"]]))
+      merged_data <- isolate(output_q()[["ANL"]])
 
       brushed_df <- teal.widgets::clean_brushedPoints(merged_data, plot_brush)
       numeric_cols <- names(brushed_df)[
@@ -1091,7 +1093,7 @@ srv_g_scatterplot <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

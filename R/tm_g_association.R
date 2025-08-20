@@ -233,7 +233,8 @@ ui_tm_g_association <- function(id, ...) {
     ),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
       tags$label("Encodings", class = "text-primary"),
       teal.transform::datanames_input(args[c("ref", "vars")]),
@@ -265,8 +266,9 @@ ui_tm_g_association <- function(id, ...) {
         value = FALSE
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(args$decorators, "plot")),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
           title = "Plot settings",
           teal.widgets::optionalSliderInputValMinMax(ns("alpha"), "Scatterplot opacity:", c(0.5, 0, 1), ticks = FALSE),
           teal.widgets::optionalSliderInputValMinMax(ns("size"), "Scatterplot points size:", c(2, 1, 8), ticks = FALSE),
@@ -507,7 +509,7 @@ srv_tm_g_association <- function(id,
               plots <- plot_calls
               plot_top <- plots[[1]]
               plot_bottom <- plots[[2]]
-              plot <- tern::stack_grobs(grobs = lapply(list(plot_top, plot_bottom), ggplot2::ggplotGrob))
+              plot <- gridExtra::grid.arrange(plot_top, plot_bottom, ncol = 1)
             },
             env = list(
               plot_calls = do.call(
@@ -542,9 +544,7 @@ srv_tm_g_association <- function(id,
       width = plot_width
     )
 
-    output$title <- renderText({
-      teal.code::dev_suppress(output_q()[["title"]])
-    })
+    output$title <- renderText(output_q()[["title"]])
 
     # Render R code.
     source_code_r <- reactive(teal.code::get_code(req(decorated_output_grob_q())))
@@ -573,7 +573,7 @@ srv_tm_g_association <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

@@ -23,7 +23,6 @@
 #' - `summary_plot` (`grob` created with [ggplot2::ggplotGrob()])
 #' - `combination_plot` (`grob` created with [ggplot2::ggplotGrob()])
 #' - `by_subject_plot` (`ggplot`)
-#' - `table` (`datatables` created with [DT::datatable()])
 #'
 #' A Decorator is applied to the specific output using a named list of `teal_transform_module` objects.
 #' The name of this list corresponds to the name of the output to which the decorator is applied.
@@ -35,8 +34,7 @@
 #'    decorators = list(
 #'      summary_plot = teal_transform_module(...), # applied only to `summary_plot` output
 #'      combination_plot = teal_transform_module(...), # applied only to `combination_plot` output
-#'      by_subject_plot = teal_transform_module(...), # applied only to `by_subject_plot` output
-#'      table = teal_transform_module(...) # applied only to `table` output
+#'      by_subject_plot = teal_transform_module(...) # applied only to `by_subject_plot` output
 #'    )
 #' )
 #' ```
@@ -148,8 +146,7 @@ tm_missing_data <- function(label = "Missing data",
   checkmate::assert_multi_class(pre_output, c("shiny.tag", "shiny.tag.list", "html"), null.ok = TRUE)
   checkmate::assert_multi_class(post_output, c("shiny.tag", "shiny.tag.list", "html"), null.ok = TRUE)
 
-  available_decorators <- c("summary_plot", "combination_plot", "by_subject_plot", "table")
-  assert_decorators(decorators, names = available_decorators)
+  assert_decorators(decorators, names = c("summary_plot", "combination_plot", "by_subject_plot"))
   # End of assertions
 
   datanames_module <- if (identical(datanames, "all") || is.null(datanames)) {
@@ -183,16 +180,9 @@ tm_missing_data <- function(label = "Missing data",
 ui_page_missing_data <- function(id, pre_output = NULL, post_output = NULL) {
   ns <- NS(id)
   tagList(
-    include_css_files("custom"),
     teal.widgets::standard_layout(
       output = teal.widgets::white_small_well(
-        tags$div(
-          class = "flex",
-          column(
-            width = 12,
-            uiOutput(ns("dataset_tabs"))
-          )
-        )
+        uiOutput(ns("dataset_tabs"))
       ),
       encoding = tags$div(
         uiOutput(ns("dataset_encodings"))
@@ -230,13 +220,7 @@ srv_page_missing_data <- function(id, data, reporter, filter_panel_api, dataname
             function(x) {
               tabPanel(
                 title = x,
-                column(
-                  width = 12,
-                  tags$div(
-                    class = "mt-4",
-                    ui_missing_data(id = ns(x), by_subject_plot = if_subject_plot)
-                  )
-                )
+                ui_missing_data(id = ns(x), by_subject_plot = if_subject_plot)
               )
             }
           )
@@ -373,7 +357,8 @@ encoding_missing_data <- function(id, summary_per_patient = FALSE, ggtheme, data
 
   tagList(
     ### Reporter
-    teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+    teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+    tags$br(), tags$br(),
     ###
     tags$label("Encodings", class = "text-primary"),
     helpText(
@@ -383,21 +368,19 @@ encoding_missing_data <- function(id, summary_per_patient = FALSE, ggtheme, data
     uiOutput(ns("variables")),
     actionButton(
       ns("filter_na"),
-      tags$span("Select only vars with missings", class = "whitespace-normal"),
+      tags$span("Select only vars with missings", style = "white-space: normal;"),
       width = "100%",
-      class = "mb-4"
+      style = "margin-bottom: 1rem;"
     ),
     conditionalPanel(
       is_tab_active_js(ns("summary_type"), "Summary"),
-      checkboxInput(
-        ns("any_na"),
-        tags$div(
-          class = "teal-tooltip",
-          tagList(
-            "Add **anyna** variable",
+      bslib::input_switch(
+        id = ns("any_na"),
+        label = tags$div(
+          HTML("Add <b>anyna</b> variable"),
+          bslib::tooltip(
             icon("circle-info"),
             tags$span(
-              class = "tooltiptext",
               "Describes the number of observations with at least one missing value in any variable."
             )
           )
@@ -405,15 +388,13 @@ encoding_missing_data <- function(id, summary_per_patient = FALSE, ggtheme, data
         value = FALSE
       ),
       if (summary_per_patient) {
-        checkboxInput(
-          ns("if_patients_plot"),
-          tags$div(
-            class = "teal-tooltip",
-            tagList(
-              "Add summary per patients",
+        bslib::input_switch(
+          id = ns("if_patients_plot"),
+          label = tags$div(
+            "Add summary per patients",
+            bslib::tooltip(
               icon("circle-info"),
               tags$span(
-                class = "tooltiptext",
                 paste(
                   "Displays the number of missing values per observation,",
                   "where the x-axis is sorted by observation appearance in the table."
@@ -445,17 +426,18 @@ encoding_missing_data <- function(id, summary_per_patient = FALSE, ggtheme, data
         choices = c("counts", "proportions"),
         selected = "counts",
         inline = TRUE
-      ),
-      ui_decorate_teal_data(ns("dec_summary_table"), decorators = select_decorators(decorators, "table"))
+      )
     ),
-    teal.widgets::panel_item(
-      title = "Plot settings",
-      selectInput(
-        inputId = ns("ggtheme"),
-        label = "Theme (by ggplot):",
-        choices = ggplot_themes,
-        selected = ggtheme,
-        multiple = FALSE
+    bslib::accordion(
+      bslib::accordion_panel(
+        title = "Plot settings",
+        selectInput(
+          inputId = ns("ggtheme"),
+          label = "Theme (by ggplot):",
+          choices = ggplot_themes,
+          selected = ggtheme,
+          multiple = FALSE
+        )
       )
     )
   )
@@ -1157,7 +1139,10 @@ srv_missing_data <- function(id,
         )
       }
 
-      within(qenv, table <- DT::datatable(summary_data))
+      within(qenv, {
+        table <- rtables::df_to_tt(summary_data)
+        table
+      })
     })
 
     by_subject_plot_q <- reactive({
@@ -1299,13 +1284,6 @@ srv_missing_data <- function(id,
       }
     )
 
-    decorated_summary_table_q <- srv_decorate_teal_data(
-      id = "dec_summary_table",
-      data = summary_table_q,
-      decorators = select_decorators(decorators, "table"),
-      expr = table
-    )
-
     decorated_by_subject_plot_q <- srv_decorate_teal_data(
       id = "dec_by_subject_plot",
       data = by_subject_plot_q,
@@ -1324,18 +1302,24 @@ srv_missing_data <- function(id,
     })
 
     summary_table_r <- reactive({
-      req(decorated_summary_table_q())
+      q <- req(summary_table_q())
 
-      if (length(input$variables_select) == 0) {
-        # so that zeroRecords message gets printed
-        # using tibble as it supports weird column names, such as " "
-        DT::datatable(
-          tibble::tibble(` ` = logical(0)),
-          options = list(language = list(zeroRecords = "No variable selected."), pageLength = input$levels_table_rows)
-        )
-      } else {
-        decorated_summary_table_q()[["table"]]
-      }
+      list(
+        html = if (length(input$variables_select) == 0) {
+          # so that zeroRecords message gets printed
+          # using tibble as it supports weird column names, such as " "
+          DT::datatable(
+            tibble::tibble(` ` = logical(0)),
+            options = list(
+              language = list(zeroRecords = "No variable selected."),
+              pageLength = input$levels_table_rows
+            )
+          )
+        } else {
+          DT::datatable(q[["summary_data"]])
+        },
+        report = q[["table"]]
+      )
     })
 
     by_subject_plot_r <- reactive({
@@ -1357,7 +1341,7 @@ srv_missing_data <- function(id,
       width = plot_width
     )
 
-    output$levels_table <- DT::renderDataTable(summary_table_r())
+    output$levels_table <- DT::renderDataTable(summary_table_r()[["html"]])
 
     pws3 <- teal.widgets::plot_with_settings_srv(
       id = "by_subject_plot",
@@ -1373,7 +1357,7 @@ srv_missing_data <- function(id,
       } else if (sum_type == "Combinations") {
         decorated_combination_plot_q()
       } else if (sum_type == "By Variable Levels") {
-        decorated_summary_table_q()
+        summary_table_q()
       } else if (sum_type == "Grouped by Subject") {
         decorated_by_subject_plot_q()
       }
@@ -1411,11 +1395,10 @@ srv_missing_data <- function(id,
           card$append_plot(combination_plot_r(), dim = pws2$dim())
         } else if (sum_type == "By Variable Levels") {
           card$append_text("Table", "header3")
-          table <- decorated_summary_table_q()[["table"]]
-          if (nrow(table) == 0L) {
+          if (nrow(summary_table_q()[["summary_data"]]) == 0L) {
             card$append_text("No data available for table.")
           } else {
-            card$append_table(table)
+            card$append_table(summary_table_r()[["report"]])
           }
         } else if (sum_type == "Grouped by Subject") {
           card$append_text("Plot", "header3")
@@ -1428,7 +1411,7 @@ srv_missing_data <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })

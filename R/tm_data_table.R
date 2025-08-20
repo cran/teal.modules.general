@@ -112,7 +112,7 @@ tm_data_table <- function(label = "Data Table",
     })
   }
   if (!missing(datasets_selected)) {
-    lifecycle::deprecate_soft(
+    lifecycle::deprecate_stop(
       when = "0.4.0",
       what = "tm_data_table(datasets_selected)",
       with = "tm_data_table(datanames)",
@@ -158,25 +158,17 @@ ui_page_data_table <- function(id, pre_output = NULL, post_output = NULL) {
   ns <- NS(id)
 
   tagList(
-    include_css_files("custom"),
     teal.widgets::standard_layout(
       output = teal.widgets::white_small_well(
-        fluidRow(
-          column(
-            width = 12,
-            checkboxInput(
-              ns("if_distinct"),
-              "Show only distinct rows:",
-              value = FALSE
-            )
+        bslib::page_fluid(
+          checkboxInput(
+            ns("if_distinct"),
+            "Show only distinct rows:",
+            value = FALSE
           )
         ),
-        fluidRow(
-          class = "mb-8",
-          column(
-            width = 12,
-            uiOutput(ns("dataset_table"))
-          )
+        bslib::page_fluid(
+          uiOutput(ns("dataset_table"))
         )
       ),
       pre_output = pre_output,
@@ -233,15 +225,12 @@ srv_page_data_table <- function(id,
               }
               tabPanel(
                 title = x,
-                column(
-                  width = 12,
-                  div(
-                    class = "mt-4",
-                    ui_data_table(
-                      id = session$ns(x),
-                      choices = choices,
-                      selected = variables_selected
-                    )
+                bslib::layout_columns(
+                  col_widths = 12,
+                  ui_data_table(
+                    id = session$ns(x),
+                    choices = choices,
+                    selected = variables_selected
                   )
                 )
               )
@@ -281,7 +270,7 @@ ui_data_table <- function(id, choices, selected) {
 
   tagList(
     teal.widgets::get_dt_rows(ns("data_table"), ns("dt_rows")),
-    fluidRow(
+    bslib::page_fluid(
       teal.widgets::optionalSelectInput(
         ns("variables"),
         "Select variables:",
@@ -291,7 +280,7 @@ ui_data_table <- function(id, choices, selected) {
         width = "100%"
       )
     ),
-    fluidRow(
+    bslib::page_fluid(
       DT::dataTableOutput(ns("data_table"), width = "100%")
     )
   )

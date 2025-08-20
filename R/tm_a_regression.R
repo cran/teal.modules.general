@@ -286,9 +286,10 @@ ui_a_regression <- function(id, ...) {
     )),
     encoding = tags$div(
       ### Reporter
-      teal.reporter::simple_reporter_ui(ns("simple_reporter")),
+      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
+      tags$br(), tags$br(),
       ###
-      tags$label("Encodings", class = "text-primary"),
+      tags$label("Encodings", class = "text-primary"), tags$br(),
       teal.transform::datanames_input(args[c("response", "regressor")]),
       teal.transform::data_extract_ui(
         id = ns("response"),
@@ -315,12 +316,10 @@ ui_a_regression <- function(id, ...) {
         teal.widgets::optionalSliderInput(
           ns("outlier"),
           tags$div(
-            class = "teal-tooltip",
             tagList(
               "Outlier definition:",
-              icon("circle-info"),
-              tags$span(
-                class = "tooltiptext",
+              bslib::tooltip(
+                icon("fas fa-circle-info"),
                 paste(
                   "Use the slider to choose the cut-off value to define outliers.",
                   "Points with a Cook's distance greater than",
@@ -338,24 +337,25 @@ ui_a_regression <- function(id, ...) {
         )
       ),
       ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(args$decorators, "plot")),
-      teal.widgets::panel_group(
-        teal.widgets::panel_item(
+      bslib::accordion(
+        open = TRUE,
+        bslib::accordion_panel(
           title = "Plot settings",
           teal.widgets::optionalSliderInputValMinMax(ns("alpha"), "Opacity:", args$alpha, ticks = FALSE),
           teal.widgets::optionalSliderInputValMinMax(ns("size"), "Points size:", args$size, ticks = FALSE),
           teal.widgets::optionalSliderInputValMinMax(
             inputId = ns("label_min_segment"),
             label = tags$div(
-              class = "teal-tooltip",
               tagList(
                 "Label min. segment:",
-                icon("circle-info"),
-                tags$span(
-                  class = "tooltiptext",
-                  paste(
-                    "Use the slider to choose the cut-off value to define minimum distance between label and point",
-                    "that generates a line segment.",
-                    "It's only valid when 'Display outlier labels' is checked."
+                bslib::tooltip(
+                  icon("circle-info"),
+                  tags$span(
+                    paste(
+                      "Use the slider to choose the cut-off value to define minimum distance between label and point",
+                      "that generates a line segment.",
+                      "It's only valid when 'Display outlier labels' is checked."
+                    )
                   )
                 )
               )
@@ -830,18 +830,15 @@ srv_a_regression <- function(id,
               color = "red",
               linetype = "dashed"
             ) +
-            ggplot2::geom_text(
-              ggplot2::aes(
-                x = 0,
-                y = mean(data$.cooksd, na.rm = TRUE),
-                label = paste("mu", "=", round(mean(data$.cooksd, na.rm = TRUE), 4)),
-                vjust = -1,
-                hjust = 0,
-                color = "red",
-                angle = 90
-              ),
-              parse = TRUE,
-              show.legend = FALSE
+            ggplot2::annotate(
+              geom = "text",
+              x = 0,
+              y = mean(data$.cooksd, na.rm = TRUE),
+              label = paste("mu", "=", round(mean(data$.cooksd, na.rm = TRUE), 4)),
+              vjust = -1,
+              hjust = 0,
+              color = "red",
+              angle = 90
             ) +
             outlier_label,
           env = list(plot = plot, outlier = input$outlier, outlier_label = outlier_label())
@@ -998,7 +995,7 @@ srv_a_regression <- function(id,
       "decorator",
       data = output_q,
       decorators = select_decorators(decorators, "plot"),
-      expr = print(plot)
+      expr = plot
     )
 
     fitted <- reactive({
@@ -1021,9 +1018,7 @@ srv_a_regression <- function(id,
     output$text <- renderText({
       req(iv_r()$is_valid())
       req(iv_out$is_valid())
-      paste(utils::capture.output(summary(teal.code::dev_suppress(fitted())))[-1],
-        collapse = "\n"
-      )
+      paste(utils::capture.output(summary(fitted()))[-1], collapse = "\n")
     })
 
     # Render R code.
@@ -1053,7 +1048,7 @@ srv_a_regression <- function(id,
         card$append_src(source_code_r())
         card
       }
-      teal.reporter::simple_reporter_srv("simple_reporter", reporter = reporter, card_fun = card_fun)
+      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
     }
     ###
   })
