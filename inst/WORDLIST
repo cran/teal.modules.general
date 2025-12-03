@@ -2,6 +2,7 @@ ElementaryTable
 Forkers
 Hoffmann
 Prebuilt
+Rmarkdown
 Shinylive
 TLG
 UI
@@ -12,5 +13,6 @@ ggmosaic
 ggplot
 pre
 qq
+reportable
 sortable
 tabset

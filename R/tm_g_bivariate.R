@@ -70,6 +70,7 @@
 #' To learn more please refer to the vignette
 #' `vignette("transform-module-output", package = "teal")` or the [`teal::teal_transform_module()`] documentation.
 #'
+#' @inheritSection teal::example_module Reporting
 #'
 #' @examplesShinylive
 #' library(teal.modules.general)
@@ -339,10 +340,6 @@ ui_g_bivariate <- function(id, ...) {
       tags$div(teal.widgets::plot_with_settings_ui(id = ns("myplot")))
     ),
     encoding = tags$div(
-      ### Reporter
-      teal.reporter::add_card_button_ui(ns("add_reporter"), label = "Add Report Card"),
-      tags$br(), tags$br(),
-      ###
       tags$label("Encodings", class = "text-primary"),
       teal.transform::datanames_input(args[c("x", "y", "row_facet", "col_facet", "color", "fill", "size")]),
       teal.transform::data_extract_ui(
@@ -469,9 +466,6 @@ ui_g_bivariate <- function(id, ...) {
         )
       )
     ),
-    forms = tagList(
-      teal.widgets::verbatim_popup_ui(ns("rcode"), "Show R code")
-    ),
     pre_output = args$pre_output,
     post_output = args$post_output
   )
@@ -480,8 +474,6 @@ ui_g_bivariate <- function(id, ...) {
 # Server function for the bivariate module
 srv_g_bivariate <- function(id,
                             data,
-                            reporter,
-                            filter_panel_api,
                             x,
                             y,
                             row_facet,
@@ -494,8 +486,6 @@ srv_g_bivariate <- function(id,
                             plot_width,
                             ggplot2_args,
                             decorators) {
-  with_reporter <- !missing(reporter) && inherits(reporter, "Reporter")
-  with_filter <- !missing(filter_panel_api) && inherits(filter_panel_api, "FilterPanelAPI")
   checkmate::assert_class(data, "reactive")
   checkmate::assert_class(isolate(data()), "teal_data")
   moduleServer(id, function(input, output, session) {
@@ -560,13 +550,16 @@ srv_g_bivariate <- function(id,
       selector_list = selector_list,
       datasets = data
     )
-    qenv <- reactive(
-      teal.code::eval_code(data(), 'library("ggplot2");library("dplyr")') # nolint: quotes.
-    )
 
     anl_merged_q <- reactive({
-      req(anl_merged_input())
-      qenv() %>%
+      obj <- data()
+      teal.reporter::teal_card(obj) <-
+        c(
+          teal.reporter::teal_card(obj),
+          teal.reporter::teal_card("## Module's output(s)")
+        )
+      obj |>
+        teal.code::eval_code("library(ggplot2);library(dplyr)") |>
         teal.code::eval_code(as.expression(anl_merged_input()$expr))
     })
 
@@ -693,7 +686,9 @@ srv_g_bivariate <- function(id,
         }
       }
 
-      teal.code::eval_code(merged$anl_q_r(), substitute(expr = plot <- cl, env = list(cl = cl)))
+      obj <- merged$anl_q_r()
+      teal.reporter::teal_card(obj) <- c(teal.reporter::teal_card(obj), "### Plot")
+      teal.code::eval_code(obj, substitute(expr = plot <- cl, env = list(cl = cl)))
     })
 
     decorated_output_q_facets <- srv_decorate_teal_data(
@@ -716,26 +711,22 @@ srv_g_bivariate <- function(id,
         } else {
           substitute(
             expr = {
-              # Add facetting labels
-              # optional: grid.newpage() # nolint: commented_code.
-              # Prefixed with teal.modules.general as its usage will appear in "Show R code"
-              plot <- teal.modules.general::add_facet_labels(
+              teal.modules.general::add_facet_labels(
                 plot,
                 xfacet_label = nulled_col_facet_name,
                 yfacet_label = nulled_row_facet_name
               )
-              grid::grid.newpage()
-              grid::grid.draw(plot)
             },
             env = list(nulled_col_facet_name = nulled_col_facet_name, nulled_row_facet_name = nulled_row_facet_name)
           )
         }
         print_call
-      }),
-      expr_is_reactive = TRUE
+      })
     )
 
-    plot_r <- reactive(req(decorated_output_q_facets())[["plot"]])
+    plot_r <- reactive({
+      req(decorated_output_q_facets())[["plot"]]
+    })
 
     pws <- teal.widgets::plot_with_settings_srv(
       id = "myplot",
@@ -744,37 +735,7 @@ srv_g_bivariate <- function(id,
       width = plot_width
     )
 
-    # Render R code.
-
-    source_code_r <- reactive(teal.code::get_code(req(decorated_output_q_facets())))
-
-    teal.widgets::verbatim_popup_srv(
-      id = "rcode",
-      verbatim_content = source_code_r,
-      title = "Bivariate Plot"
-    )
-
-    ### REPORTER
-    if (with_reporter) {
-      card_fun <- function(comment, label) {
-        card <- teal::report_card_template(
-          title = "Bivariate Plot",
-          label = label,
-          with_filter = with_filter,
-          filter_panel_api = filter_panel_api
-        )
-        card$append_text("Plot", "header3")
-        card$append_plot(plot_r(), dim = pws$dim())
-        if (!comment == "") {
-          card$append_text("Comment", "header3")
-          card$append_text(comment)
-        }
-        card$append_src(source_code_r())
-        card
-      }
-      teal.reporter::add_card_button_srv("add_reporter", reporter = reporter, card_fun = card_fun)
-    }
-    ###
+    set_chunk_dims(pws, decorated_output_q_facets)
   })
 }
 
@@ -809,7 +770,7 @@ bivariate_plot_call <- function(data_name,
     y <- if (is.call(y)) y else as.name(y)
   }
 
-  cl <- bivariate_ggplot_call(
+  bivariate_ggplot_call(
     x_class = x_class,
     y_class = y_class,
     freq = freq,
@@ -968,7 +929,13 @@ bivariate_ggplot_call <- function(x_class,
     )
     # Factor and character plots
   } else if (x_class == "factor" && y_class == "factor") {
-    stop("Categorical variables 'x' and 'y' are currently not supported.")
+    plot_call <- reduce_plot_call(
+      plot_call,
+      substitute(
+        teal.modules.general::geom_mosaic(ggplot2::aes(x = xval, fill = yval)),
+        env = list(xval = x, yval = y)
+      )
+    )
   } else {
     stop("x y type combination not allowed")
   }
