@@ -335,7 +335,7 @@ if (interactive()) {
 # url <- roxy.shinylive::create_shinylive_url(code)
 # knitr::include_url(url, height = "800px")
 
-## ----decorate_trellis, message=FALSE------------------------------------------
+## ----decorate_patchwork, message=FALSE----------------------------------------
 library(teal.modules.general)
 
 data <- teal_data(join_keys = default_cdisc_join_keys[c("ADSL", "ADRS")])
@@ -345,19 +345,19 @@ data <- within(data, {
   ADRS <- rADRS
 })
 
-trellis_subtitle_decorator <- function(default_caption = "I am a good decorator") {
+patchwork_title_decorator <- function(default_title = "I am a good decorator") {
   teal_transform_module(
-    label = "Caption",
-    ui = function(id) shiny::textInput(shiny::NS(id, "footnote"), "Footnote", value = default_caption),
+    label = "Title",
+    ui = function(id) shiny::textInput(shiny::NS(id, "title"), "Plot Title", value = default_title),
     server = function(id, data) {
       moduleServer(id, function(input, output, session) {
         reactive({
           data() |>
             within(
               {
-                plot <- update(plot, sub = footnote)
+                plot <- plot + patchwork::plot_annotation(title = plot_title)
               },
-              footnote = input$footnote
+              plot_title = input$title
             )
         })
       })
@@ -398,7 +398,7 @@ app <- init(
         )
       ),
       decorators = list(
-        plot = trellis_subtitle_decorator("I am a Scatterplot matrix")
+        plot = patchwork_title_decorator("I am a Scatterplot matrix")
       )
     )
   )
@@ -412,7 +412,7 @@ if (interactive()) {
 # code <- paste0(c(
 #   "interactive <- function() TRUE",
 #   knitr::knit_code$get("setup"),
-#   knitr::knit_code$get("decorate_trellis")
+#   knitr::knit_code$get("decorate_patchwork")
 # ), collapse = "\n")
 # 
 # url <- roxy.shinylive::create_shinylive_url(code)

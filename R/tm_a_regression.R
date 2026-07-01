@@ -230,7 +230,6 @@ tm_a_regression <- function(label = "Regression Analysis",
   checkmate::assert_multi_class(post_output, c("shiny.tag", "shiny.tag.list", "html"), null.ok = TRUE)
   checkmate::assert_choice(default_plot_type, seq.int(1L, length(plot_choices)))
   checkmate::assert_string(default_outlier_label)
-  checkmate::assert_list(decorators, "teal_transform_module")
 
   if (length(label_segment_threshold) == 1) {
     checkmate::assert_numeric(label_segment_threshold, any.missing = FALSE, finite = TRUE)
@@ -243,7 +242,7 @@ tm_a_regression <- function(label = "Regression Analysis",
       .var.name = "label_segment_threshold"
     )
   }
-  assert_decorators(decorators, "plot")
+  teal::assert_decorators(decorators, "plot")
   # End of assertions
 
   # Make UI args
@@ -334,7 +333,7 @@ ui_a_regression <- function(id, ...) {
           label = "Outlier label"
         )
       ),
-      ui_decorate_teal_data(ns("decorator"), decorators = select_decorators(args$decorators, "plot")),
+      teal::ui_transform_teal_data(ns("decorator"), transformators = select_decorators(args$decorators, "plot")),
       bslib::accordion(
         open = TRUE,
         bslib::accordion_panel(
@@ -589,7 +588,7 @@ srv_a_regression <- function(id,
             as.data.frame(stats::lowess(x, y, f = 2 / 3, iter = 3))
           }
 
-          smoothy_aes <- ggplot2::aes_string(x = "x", y = "y")
+          smoothy_aes <- ggplot2::aes(x = x, y = y)
 
           reg_form <- deparse(fit$call[[2]])
         })
@@ -606,7 +605,7 @@ srv_a_regression <- function(id,
         shinyjs::show("size")
         shinyjs::show("alpha")
         plot <- substitute(
-          expr = ggplot2::ggplot(fit$model[, 2:1], ggplot2::aes_string(regressor, response)) +
+          expr = ggplot2::ggplot(fit$model[, 2:1], ggplot2::aes(x = .data[[regressor]], y = .data[[response]])) +
             ggplot2::geom_point(size = size, alpha = alpha) +
             ggplot2::stat_smooth(method = "lm", formula = y ~ x, se = FALSE),
           env = list(
@@ -626,7 +625,7 @@ srv_a_regression <- function(id,
         shinyjs::hide("size")
         shinyjs::hide("alpha")
         plot <- substitute(
-          expr = ggplot2::ggplot(fit$model[, 2:1], ggplot2::aes_string(regressor, response)) +
+          expr = ggplot2::ggplot(fit$model[, 2:1], ggplot2::aes(x = .data[[regressor]], y = .data[[response]])) +
             ggplot2::geom_boxplot(),
           env = list(regressor = regression_var()$regressor, response = regression_var()$response)
         )
@@ -993,10 +992,10 @@ srv_a_regression <- function(id,
       )
     })
 
-    decorated_output_q <- srv_decorate_teal_data(
+    decorated_output_q <- teal::srv_transform_teal_data(
       "decorator",
       data = output_q,
-      decorators = select_decorators(decorators, "plot"),
+      transformators = select_decorators(decorators, "plot"),
       expr = quote(plot)
     )
 

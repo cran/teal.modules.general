@@ -1,7 +1,6 @@
 ## ----library, echo=TRUE, message=FALSE, warning=FALSE, results="hide"---------
 library(teal.modules.general) # used to create the app
 library(dplyr) # used to modify data sets
-library(lattice)
 
 ## ----data, echo=TRUE, message=FALSE, warning=FALSE, results="hide"------------
 data <- teal_data()

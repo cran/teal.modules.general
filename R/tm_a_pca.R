@@ -189,7 +189,7 @@ tm_a_pca <- function(label = "Principal Component Analysis",
   checkmate::assert_multi_class(post_output, c("shiny.tag", "shiny.tag.list", "html"), null.ok = TRUE)
 
   available_decorators <- c("elbow_plot", "circle_plot", "biplot", "eigenvector_plot")
-  assert_decorators(decorators, available_decorators)
+  teal::assert_decorators(decorators, available_decorators)
 
   # Make UI args
   args <- as.list(environment())
@@ -262,30 +262,30 @@ ui_a_pca <- function(id, ...) {
             ),
             conditionalPanel(
               condition = sprintf("input['%s'] == 'Elbow plot'", ns("plot_type")),
-              ui_decorate_teal_data(
+              teal::ui_transform_teal_data(
                 ns("d_elbow_plot"),
-                decorators = select_decorators(args$decorators, "elbow_plot")
+                transformators = select_decorators(args$decorators, "elbow_plot")
               )
             ),
             conditionalPanel(
               condition = sprintf("input['%s'] == 'Circle plot'", ns("plot_type")),
-              ui_decorate_teal_data(
+              teal::ui_transform_teal_data(
                 ns("d_circle_plot"),
-                decorators = select_decorators(args$decorators, "circle_plot")
+                transformators = select_decorators(args$decorators, "circle_plot")
               )
             ),
             conditionalPanel(
               condition = sprintf("input['%s'] == 'Biplot'", ns("plot_type")),
-              ui_decorate_teal_data(
+              teal::ui_transform_teal_data(
                 ns("d_biplot"),
-                decorators = select_decorators(args$decorators, "biplot")
+                transformators = select_decorators(args$decorators, "biplot")
               )
             ),
             conditionalPanel(
               condition = sprintf("input['%s'] == 'Eigenvector plot'", ns("plot_type")),
-              ui_decorate_teal_data(
+              teal::ui_transform_teal_data(
                 ns("d_eigenvector_plot"),
-                decorators = select_decorators(args$decorators, "eigenvector_plot")
+                transformators = select_decorators(args$decorators, "eigenvector_plot")
               )
             )
           ),
@@ -514,23 +514,14 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
 
       teal.reporter::teal_card(qenv) <- c(teal.reporter::teal_card(qenv), "### Principal Components Table")
 
-      qenv <- teal.code::eval_code(
-        qenv,
-        quote({
-          tbl_importance <- dplyr::as_tibble(pca$importance, rownames = "Metric")
-          tbl_importance
-        })
-      )
+      qenv <- within(
+        qenv, tbl_importance <- dplyr::as_tibble(pca$importance, rownames = "Metric")
+      ) %>% within(tbl_importance) # Edge case with covr when this expression is joined with previous
 
       teal.reporter::teal_card(qenv) <- c(teal.reporter::teal_card(qenv), "### Eigenvectors Table")
 
-      teal.code::eval_code(
-        qenv,
-        quote({
-          tbl_eigenvector <- dplyr::as_tibble(pca$rotation, rownames = "Variable")
-          tbl_eigenvector
-        })
-      )
+      within(qenv, tbl_eigenvector <- dplyr::as_tibble(pca$rotation, rownames = "Variable")) %>%
+        within(tbl_eigenvector) # Edge case with covr when this expression is joined with previous
     })
 
     # plot args ----
@@ -617,7 +608,7 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
               )
 
             cols <- c(getOption("ggplot2.discrete.colour"), c("lightblue", "darkred", "black"))[1:3]
-            elbow_plot <- ggplot2::ggplot(mapping = ggplot2::aes_string(x = "component", y = "value")) +
+            elbow_plot <- ggplot2::ggplot(mapping = ggplot2::aes(x = component, y = value)) +
               ggplot2::geom_bar(
                 ggplot2::aes(fill = "Single variance"),
                 data = dplyr::filter(elb_dat, metric == "Proportion of Variance"),
@@ -696,9 +687,9 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
             )
 
             circle_plot <- ggplot2::ggplot(pca_rot) +
-              ggplot2::geom_point(ggplot2::aes_string(x = x_axis, y = y_axis)) +
+              ggplot2::geom_point(ggplot2::aes(x = .data[[x_axis]], y = .data[[y_axis]])) +
               ggplot2::geom_label(
-                ggplot2::aes_string(x = x_axis, y = y_axis, label = "label"),
+                ggplot2::aes(x = .data[[x_axis]], y = .data[[y_axis]], label = label),
                 nudge_x = 0.1, nudge_y = 0.05,
                 fontface = "bold"
               ) +
@@ -798,7 +789,7 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
         pca_plot_biplot_expr <- c(
           pca_plot_biplot_expr,
           substitute(
-            ggplot2::geom_point(ggplot2::aes_string(x = x_axis, y = y_axis),
+            ggplot2::geom_point(ggplot2::aes(x = .data[[x_axis]], y = .data[[y_axis]]),
               data = pca_rot, alpha = alpha, size = size
             ),
             list(x_axis = input$x_axis, y_axis = input$y_axis, alpha = input$alpha, size = input$size)
@@ -811,7 +802,7 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
         response <- ANL[[resp_col]]
 
         aes_biplot <- substitute(
-          ggplot2::aes_string(x = x_axis, y = y_axis, color = "response"),
+          ggplot2::aes(x = .data[[x_axis]], y = .data[[y_axis]], color = response),
           env = list(x_axis = x_axis, y_axis = y_axis)
         )
 
@@ -834,10 +825,7 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
             )
             quote(ggplot2::scale_color_brewer(palette = "Dark2"))
           } else if (inherits(response, "Date")) {
-            qenv <- teal.code::eval_code(
-              qenv,
-              quote(pca_rot$response <- numeric(response))
-            )
+            qenv <- within(qenv, pca_rot$response <- as.numeric(response))
 
             quote(
               ggplot2::scale_color_gradient(
@@ -872,7 +860,7 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
           pca_plot_biplot_expr,
           substitute(
             ggplot2::geom_segment(
-              ggplot2::aes_string(x = "xstart", y = "ystart", xend = x_axis, yend = y_axis),
+              ggplot2::aes(x = xstart, y = ystart, xend = .data[[x_axis]], yend = .data[[y_axis]]),
               data = rot_vars,
               lineend = "round", linejoin = "round",
               arrow = grid::arrow(length = grid::unit(0.5, "cm"))
@@ -881,10 +869,10 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
           ),
           substitute(
             ggplot2::geom_label(
-              ggplot2::aes_string(
-                x = x_axis,
-                y = y_axis,
-                label = "label"
+              ggplot2::aes(
+                x = .data[[x_axis]],
+                y = .data[[y_axis]],
+                label = label
               ),
               data = rot_vars,
               nudge_y = 0.1,
@@ -977,7 +965,7 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
           quote(ggplot(pca_rot)),
           substitute(
             ggplot2::geom_bar(
-              ggplot2::aes_string(x = "Variable", y = pc),
+              ggplot2::aes(x = Variable, y = .data[[pc]]),
               stat = "identity",
               color = "black",
               fill = c(getOption("ggplot2.discrete.colour"), "lightblue")[1]
@@ -1038,10 +1026,10 @@ srv_a_pca <- function(id, data, dat, plot_height, plot_width, ggplot2_args, deco
 
     decorated_q <- mapply(
       function(obj_name, q) {
-        srv_decorate_teal_data(
+        teal::srv_transform_teal_data(
           id = sprintf("d_%s", obj_name),
           data = q,
-          decorators = select_decorators(decorators, obj_name),
+          transformators = select_decorators(decorators, obj_name),
           expr = reactive({
             substitute(.plot, env = list(.plot = as.name(obj_name)))
           })

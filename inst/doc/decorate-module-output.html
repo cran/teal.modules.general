@@ -355,8 +355,7 @@ decorated</a></li>
 <code>grob</code></a></li>
 <li><a href="#decorating-datatables" id="toc-decorating-datatables">Decorating
 <code>datatables</code></a></li>
-<li><a href="#decorating-trellis" id="toc-decorating-trellis">Decorating
-<code>trellis</code></a></li>
+<li><a href="#decorating-patchwork" id="toc-decorating-patchwork">Decorating <code>patchwork</code></a></li>
 </ul>
 </div>
 
@@ -434,7 +433,7 @@ eigenvector_plot (ggplot)</td>
 </tr>
 <tr class="even">
 <td><code>tm_g_scatterplotmatrix</code></td>
-<td>plot (trellis)</td>
+<td>plot (patchwork/ggplot)</td>
 </tr>
 <tr class="odd">
 <td><code>tm_missing_data</code></td>
@@ -457,9 +456,9 @@ decorated:</p>
 <ol style="list-style-type: decimal">
 <li><code>ElementaryTable</code></li>
 <li><code>ggplot</code></li>
+<li><code>patchwork</code></li>
 <li><code>grob</code></li>
 <li><code>datatables</code></li>
-<li><code>trellis</code></li>
 </ol>
 <p><em>Tip:</em> A general tip before trying to decorate the output from
 the module is to copy the reproducible code and running them in a
@@ -777,12 +776,13 @@ of the <code>DT</code> package to learn more about extending the
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">shinyApp</span>(app<span class="sc">$</span>ui, app<span class="sc">$</span>server)</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>}</span></code></pre></div>
 </div>
-<div id="decorating-trellis" class="section level2">
-<h2>Decorating <code>trellis</code></h2>
+<div id="decorating-patchwork" class="section level2">
+<h2>Decorating <code>patchwork</code></h2>
 <p>Here’s an example to showcase how you can edit an output of class
-<code>trellis</code>. <code>rtables</code> modifiers like
-<code>rtables::insert_rrow</code> can be applied to modify this
-object.</p>
+<code>patchwork</code>. Since <code>patchwork</code> objects support
+ggplot2-style addition, you can use
+<code>patchwork::plot_annotation()</code> and standard ggplot2 theme
+modifications.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">library</span>(teal.modules.general)</span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>(<span class="at">join_keys =</span> default_cdisc_join_keys[<span class="fu">c</span>(<span class="st">&quot;ADSL&quot;</span>, <span class="st">&quot;ADRS&quot;</span>)])</span>
@@ -792,19 +792,19 @@ object.</p>
 <span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  ADRS <span class="ot">&lt;-</span> rADRS</span>
 <span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>})</span>
 <span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>trellis_subtitle_decorator <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">default_caption =</span> <span class="st">&quot;I am a good decorator&quot;</span>) {</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>patchwork_title_decorator <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">default_title =</span> <span class="st">&quot;I am a good decorator&quot;</span>) {</span>
 <span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="fu">teal_transform_module</span>(</span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>    <span class="at">label =</span> <span class="st">&quot;Caption&quot;</span>,</span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>    <span class="at">ui =</span> <span class="cf">function</span>(id) shiny<span class="sc">::</span><span class="fu">textInput</span>(shiny<span class="sc">::</span><span class="fu">NS</span>(id, <span class="st">&quot;footnote&quot;</span>), <span class="st">&quot;Footnote&quot;</span>, <span class="at">value =</span> default_caption),</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>    <span class="at">label =</span> <span class="st">&quot;Title&quot;</span>,</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>    <span class="at">ui =</span> <span class="cf">function</span>(id) shiny<span class="sc">::</span><span class="fu">textInput</span>(shiny<span class="sc">::</span><span class="fu">NS</span>(id, <span class="st">&quot;title&quot;</span>), <span class="st">&quot;Plot Title&quot;</span>, <span class="at">value =</span> default_title),</span>
 <span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>    <span class="at">server =</span> <span class="cf">function</span>(id, data) {</span>
 <span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>      <span class="fu">moduleServer</span>(id, <span class="cf">function</span>(input, output, session) {</span>
 <span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>        <span class="fu">reactive</span>({</span>
 <span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>          <span class="fu">data</span>() <span class="sc">|&gt;</span></span>
 <span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>            <span class="fu">within</span>(</span>
 <span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>              {</span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>                plot <span class="ot">&lt;-</span> <span class="fu">update</span>(plot, <span class="at">sub =</span> footnote)</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>                plot <span class="ot">&lt;-</span> plot <span class="sc">+</span> patchwork<span class="sc">::</span><span class="fu">plot_annotation</span>(<span class="at">title =</span> plot_title)</span>
 <span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>              },</span>
-<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>              <span class="at">footnote =</span> input<span class="sc">$</span>footnote</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>              <span class="at">plot_title =</span> input<span class="sc">$</span>title</span>
 <span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>            )</span>
 <span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a>        })</span>
 <span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a>      })</span>
@@ -845,7 +845,7 @@ object.</p>
 <span id="cb7-60"><a href="#cb7-60" tabindex="-1"></a>        )</span>
 <span id="cb7-61"><a href="#cb7-61" tabindex="-1"></a>      ),</span>
 <span id="cb7-62"><a href="#cb7-62" tabindex="-1"></a>      <span class="at">decorators =</span> <span class="fu">list</span>(</span>
-<span id="cb7-63"><a href="#cb7-63" tabindex="-1"></a>        <span class="at">plot =</span> <span class="fu">trellis_subtitle_decorator</span>(<span class="st">&quot;I am a Scatterplot matrix&quot;</span>)</span>
+<span id="cb7-63"><a href="#cb7-63" tabindex="-1"></a>        <span class="at">plot =</span> <span class="fu">patchwork_title_decorator</span>(<span class="st">&quot;I am a Scatterplot matrix&quot;</span>)</span>
 <span id="cb7-64"><a href="#cb7-64" tabindex="-1"></a>      )</span>
 <span id="cb7-65"><a href="#cb7-65" tabindex="-1"></a>    )</span>
 <span id="cb7-66"><a href="#cb7-66" tabindex="-1"></a>  )</span>
