@@ -397,90 +397,61 @@ data sets.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># configuration for the single wide dataset</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>mod1 <span class="ot">&lt;-</span> <span class="fu">tm_g_scatterplotmatrix</span>(</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">label =</span> <span class="st">&quot;Single wide dataset&quot;</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">data_extract_spec</span>(</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    <span class="at">dataname =</span> <span class="st">&quot;ADSL&quot;</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>    <span class="at">select =</span> <span class="fu">select_spec</span>(</span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">&quot;Select variables:&quot;</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">variable_choices</span>(data[[<span class="st">&quot;ADSL&quot;</span>]]),</span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>      <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">&quot;AGE&quot;</span>, <span class="st">&quot;RACE&quot;</span>, <span class="st">&quot;SEX&quot;</span>, <span class="st">&quot;BMRKR1&quot;</span>, <span class="st">&quot;BMRKR2&quot;</span>),</span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>      <span class="at">multiple =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>      <span class="at">fixed =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>      <span class="at">ordered =</span> <span class="cn">TRUE</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    )</span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  )</span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>)</span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co"># configuration for the one long datasets</span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>mod2 <span class="ot">&lt;-</span> <span class="fu">tm_g_scatterplotmatrix</span>(</span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>  <span class="st">&quot;One long dataset&quot;</span>,</span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">data_extract_spec</span>(</span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>    <span class="at">dataname =</span> <span class="st">&quot;ADTTE&quot;</span>,</span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>    <span class="at">select =</span> <span class="fu">select_spec</span>(</span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>      <span class="at">choices =</span> <span class="fu">variable_choices</span>(data[[<span class="st">&quot;ADTTE&quot;</span>]], <span class="fu">c</span>(<span class="st">&quot;AVAL&quot;</span>, <span class="st">&quot;BMRKR1&quot;</span>, <span class="st">&quot;BMRKR2&quot;</span>)),</span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>      <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">&quot;AVAL&quot;</span>, <span class="st">&quot;BMRKR1&quot;</span>, <span class="st">&quot;BMRKR2&quot;</span>),</span>
-<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>      <span class="at">multiple =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>      <span class="at">fixed =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a>      <span class="at">ordered =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">&quot;Select variables:&quot;</span></span>
-<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>    )</span>
-<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a>  )</span>
-<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a>)</span>
-<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a></span>
-<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co"># configuration for the two long datasets</span></span>
-<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>mod3 <span class="ot">&lt;-</span> <span class="fu">tm_g_scatterplotmatrix</span>(</span>
-<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a>  <span class="at">label =</span> <span class="st">&quot;Two long datasets&quot;</span>,</span>
-<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
-<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a>    <span class="fu">data_extract_spec</span>(</span>
-<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a>      <span class="at">dataname =</span> <span class="st">&quot;ADRS&quot;</span>,</span>
-<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a>      <span class="at">select =</span> <span class="fu">select_spec</span>(</span>
-<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a>        <span class="at">label =</span> <span class="st">&quot;Select variables:&quot;</span>,</span>
-<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(data[[<span class="st">&quot;ADRS&quot;</span>]]),</span>
-<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">&quot;AVAL&quot;</span>, <span class="st">&quot;AVALC&quot;</span>),</span>
-<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a>        <span class="at">multiple =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a>        <span class="at">fixed =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a>        <span class="at">ordered =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a>      ),</span>
-<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a>      <span class="at">filter =</span> <span class="fu">filter_spec</span>(</span>
-<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a>        <span class="at">label =</span> <span class="st">&quot;Select endpoints:&quot;</span>,</span>
-<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a>        <span class="at">vars =</span> <span class="fu">c</span>(<span class="st">&quot;PARAMCD&quot;</span>, <span class="st">&quot;AVISIT&quot;</span>),</span>
-<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(data[[<span class="st">&quot;ADRS&quot;</span>]], <span class="fu">c</span>(<span class="st">&quot;PARAMCD&quot;</span>, <span class="st">&quot;AVISIT&quot;</span>), <span class="fu">c</span>(<span class="st">&quot;PARAM&quot;</span>, <span class="st">&quot;AVISIT&quot;</span>)),</span>
-<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a>        <span class="at">selected =</span> <span class="st">&quot;OVRINV - SCREENING&quot;</span>,</span>
-<span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a>        <span class="at">multiple =</span> <span class="cn">FALSE</span></span>
-<span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a>      )</span>
-<span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a>    ),</span>
-<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a>    <span class="fu">data_extract_spec</span>(</span>
-<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a>      <span class="at">dataname =</span> <span class="st">&quot;ADTTE&quot;</span>,</span>
-<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a>      <span class="at">select =</span> <span class="fu">select_spec</span>(</span>
-<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a>        <span class="at">label =</span> <span class="st">&quot;Select variables:&quot;</span>,</span>
-<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a>        <span class="at">choices =</span> <span class="fu">variable_choices</span>(data[[<span class="st">&quot;ADTTE&quot;</span>]]),</span>
-<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">&quot;AVAL&quot;</span>, <span class="st">&quot;CNSR&quot;</span>),</span>
-<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a>        <span class="at">multiple =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a>        <span class="at">fixed =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a>        <span class="at">ordered =</span> <span class="cn">TRUE</span></span>
-<span id="cb3-64"><a href="#cb3-64" tabindex="-1"></a>      ),</span>
-<span id="cb3-65"><a href="#cb3-65" tabindex="-1"></a>      <span class="at">filter =</span> <span class="fu">filter_spec</span>(</span>
-<span id="cb3-66"><a href="#cb3-66" tabindex="-1"></a>        <span class="at">label =</span> <span class="st">&quot;Select parameters:&quot;</span>,</span>
-<span id="cb3-67"><a href="#cb3-67" tabindex="-1"></a>        <span class="at">vars =</span> <span class="st">&quot;PARAMCD&quot;</span>,</span>
-<span id="cb3-68"><a href="#cb3-68" tabindex="-1"></a>        <span class="at">choices =</span> <span class="fu">value_choices</span>(data[[<span class="st">&quot;ADTTE&quot;</span>]], <span class="st">&quot;PARAMCD&quot;</span>, <span class="st">&quot;PARAM&quot;</span>),</span>
-<span id="cb3-69"><a href="#cb3-69" tabindex="-1"></a>        <span class="at">selected =</span> <span class="st">&quot;OS&quot;</span>,</span>
-<span id="cb3-70"><a href="#cb3-70" tabindex="-1"></a>        <span class="at">multiple =</span> <span class="cn">TRUE</span></span>
-<span id="cb3-71"><a href="#cb3-71" tabindex="-1"></a>      )</span>
-<span id="cb3-72"><a href="#cb3-72" tabindex="-1"></a>    )</span>
-<span id="cb3-73"><a href="#cb3-73" tabindex="-1"></a>  )</span>
-<span id="cb3-74"><a href="#cb3-74" tabindex="-1"></a>)</span>
-<span id="cb3-75"><a href="#cb3-75" tabindex="-1"></a></span>
-<span id="cb3-76"><a href="#cb3-76" tabindex="-1"></a><span class="co"># initialize the app</span></span>
-<span id="cb3-77"><a href="#cb3-77" tabindex="-1"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
-<span id="cb3-78"><a href="#cb3-78" tabindex="-1"></a>  <span class="at">data =</span> data,</span>
-<span id="cb3-79"><a href="#cb3-79" tabindex="-1"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
-<span id="cb3-80"><a href="#cb3-80" tabindex="-1"></a>    <span class="fu">modules</span>(</span>
-<span id="cb3-81"><a href="#cb3-81" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">&quot;Scatterplot matrix&quot;</span>,</span>
-<span id="cb3-82"><a href="#cb3-82" tabindex="-1"></a>      mod1,</span>
-<span id="cb3-83"><a href="#cb3-83" tabindex="-1"></a>      mod2,</span>
-<span id="cb3-84"><a href="#cb3-84" tabindex="-1"></a>      mod3</span>
-<span id="cb3-85"><a href="#cb3-85" tabindex="-1"></a>    )</span>
-<span id="cb3-86"><a href="#cb3-86" tabindex="-1"></a>  )</span>
-<span id="cb3-87"><a href="#cb3-87" tabindex="-1"></a>)</span></code></pre></div>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">picks</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    <span class="fu">datasets</span>(<span class="st">&quot;ADSL&quot;</span>, <span class="st">&quot;ADSL&quot;</span>),</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>    <span class="fu">variables</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>      <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">&quot;AGE&quot;</span>, <span class="st">&quot;RACE&quot;</span>, <span class="st">&quot;SEX&quot;</span>, <span class="st">&quot;BMRKR1&quot;</span>, <span class="st">&quot;BMRKR2&quot;</span>),</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>      <span class="at">multiple =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    )</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  )</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>)</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co"># configuration for the one long datasets</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>mod2 <span class="ot">&lt;-</span> <span class="fu">tm_g_scatterplotmatrix</span>(</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  <span class="st">&quot;One long dataset&quot;</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">picks</span>(</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>    <span class="fu">datasets</span>(<span class="st">&quot;ADTTE&quot;</span>, <span class="st">&quot;ADTTE&quot;</span>),</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>    <span class="fu">variables</span>(</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>      <span class="fu">c</span>(<span class="st">&quot;AVAL&quot;</span>, <span class="st">&quot;BMRKR1&quot;</span>, <span class="st">&quot;BMRKR2&quot;</span>),</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>      <span class="fu">c</span>(<span class="st">&quot;AVAL&quot;</span>, <span class="st">&quot;BMRKR1&quot;</span>, <span class="st">&quot;BMRKR2&quot;</span>),</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>      <span class="at">multiple =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>    )</span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  )</span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>)</span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co"># configuration for the two long datasets</span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a>mod3 <span class="ot">&lt;-</span> <span class="fu">tm_g_scatterplotmatrix</span>(</span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a>  <span class="at">label =</span> <span class="st">&quot;Two long datasets&quot;</span>,</span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>  <span class="at">variables =</span> <span class="fu">list</span>(</span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a>    <span class="fu">picks</span>(</span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a>      <span class="fu">datasets</span>(<span class="st">&quot;ADRS&quot;</span>, <span class="st">&quot;ADRS&quot;</span>),</span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>      <span class="fu">variables</span>(</span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">&quot;AVAL&quot;</span>, <span class="st">&quot;AVALC&quot;</span>),</span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>        <span class="at">multiple =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a>      )</span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a>    ),</span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a>    <span class="fu">picks</span>(</span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a>      <span class="fu">datasets</span>(<span class="st">&quot;ADTTE&quot;</span>, <span class="st">&quot;ADTTE&quot;</span>),</span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a>      <span class="fu">variables</span>(</span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a>        <span class="at">selected =</span> <span class="fu">c</span>(<span class="st">&quot;AVAL&quot;</span>, <span class="st">&quot;CNSR&quot;</span>),</span>
+<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a>        <span class="at">multiple =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a>      )</span>
+<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a>    )</span>
+<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a>  )</span>
+<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a>)</span>
+<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a></span>
+<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a><span class="co"># initialize the app</span></span>
+<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a>app <span class="ot">&lt;-</span> <span class="fu">init</span>(</span>
+<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a>  <span class="at">data =</span> data,</span>
+<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a>  <span class="at">modules =</span> <span class="fu">modules</span>(</span>
+<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a>    <span class="fu">modules</span>(</span>
+<span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a>      <span class="at">label =</span> <span class="st">&quot;Scatterplot matrix&quot;</span>,</span>
+<span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a>      mod1,</span>
+<span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a>      mod2,</span>
+<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a>      mod3</span>
+<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a>    )</span>
+<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a>  )</span>
+<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 <div id="run-the-app" class="section level2">
 <h2>4 - Run the app</h2>
@@ -491,7 +462,7 @@ app. Note that app is only displayed when running this code inside an
 </div>
 <div id="try-it-out-in-shinylive" class="section level2">
 <h2>5 - Try it out in Shinylive</h2>
-<p><a href="https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMAcwpxm1AJQACAMQLBouPwWkiCgozhRyWgBZwFaVAB0IdJiw79U1Vo0Uq1GrTr79aAM1YFfkMoBXVSUWtg0lCAHgBaLQNqAH1oqHY5KJCFBIUAd1pSY1oIdnTcBRBrBQUAQQARAGUAGVzErh50xERGRtaFAFIAPkGa2oUYQRjydgAVLDmGgFUsBQBeBUYiQQh+dihxCEF4RloCecWAUQa5gFkFRIW5ptu7uUqARjksiFrGrBNdpJbgYbq9AFNcaNOZzK7AzpgkI9Pq3OHQhotABCCOSSJiKMa2KGo3GtSmMzg7AAwgAJADi1I25nEfigBG0jHYBEOcBS+VMZTJEzp9NyCk+CgAfgpLGAAHJy3DC2qihTDCXS2VgAAKSpVCgWy3hMrl8Tlwp+vwAvr8AFZEUopADWcFYonKIUUeX4cDZwlIKQIvlEBBSDqdrvdwGg8A96TkAF1rCpiBA-LQJIJmKRaCQFH4iIwTGZRKUJCICrRfUEQuFrD5JXlSDAUhIUqHDORGE4iC3DGcAB7scbUKD0ODUZlyprlyuFGvpet4cYANxYtHHIlEzPSKTgg9IzA5HdQcAuwvSsbMmzl-Ra+r+E3UIg5zJf58DojPF6fEwUY4TlOt5gE0k6fgo65nFuYiII+-61AQxiOgQYjMlBm70CIQbIecYiejEwDAHezQPmAiaJh8BofhynibBeYB1PSVxKtqWB1NSLF4NqTRXAAGqxcpYncWAANJYJ8glgMJYlYAATHKVF-hMUzULmTg3oaWDGsqym1Bmg50QoABidQtLxukIQoRa+vomibEaLHKb8tS-L8Ka6CQGZZjmeZ-IWxbFGYJBmNQJASLWMThJEEA+HJCKtu2nakN2vb9ketDDuMcoAPIQKF4WRbypDwZBG4wTumx7geR7sl+P4jspV6wJpJGwlxlnPuBb6bDR9Xno1VlIShaGbBhME4SN8YhERbXouRiaVAxdQAGpmVJMniZJ3FCSJ4kKWAPydf+fVGcta1kZUu2ydtV3SXt8mKcdKkBrQGnMo5z36ZlRmmeZVxfdZjC2UZn0GoBk7TqB3WkGV0FYbBFrOeMbnWB5abedmhh+QWRYllo+Q6GFEARUucARA2AgAMwJW2HY8ilMhpTAA6ZYNAHjpDIFzITAGFWTFMrk+40I5VAG0KIpDs7U1WHse-W-lZzXwFDkKlSdMPvjDp4DQatQQ8BPGayL25wULVmIbhqFiybfLDXh02EcRjENICcoUUpFthDDZ0joxF1SatZnUk9euTK970OdpANhwZv1mRZYc2TIoPR4DnsIRmakyMyWfdjrisWwbUNga+sMUI4jpkKIZuA7UUFiwxOp1OxdzUg0gcrQAkk0XdzKHekTPb1vodwgh21b+HpLNLtuwtS1+83rft53Pd909uiLy3dR3Kvvf94dGdWad9najlK1YF38orY8ChNNSWBXFc8pX-S6sIap6mVpsf28QaLkTCPkVfccs6oF2lhMZWrUXbtXfrUPqWsy7gLDsXECpcIK2xrnAoek8bblQRpNB2BEoAzxhPND2ddvZl19neAOO0wDUnlE0LAA8vafzet-LSOlY4-VPr-GOg9ajJzsh9aO-9AZ5xzpsSRjBkGCI5kBEumtUAsBat2LB5sLYNyhkvHeK9NFDVwaPag49CHW2IaQtEXEKJ3V0W3Du9C7GsItifKGOUoQGI-hHThjl-6WhRtYdyEAVClCKJuOgAAvMwQVzDoGsBYYEoSpbjHSLuEInUfDCFGpMAQWSPTCkyduCB+tOaGxnAzVKYVYYswyoObBjZAZxUadTfxT5UYQFECUCArA6joAOOgAAJIIWglQLADPUIwVcMhKhEFQLmEgYs6CS3YKYTMxhYabE+AABjkgAFkqAuYozJtl7J+GAa0iYgA">Open
+<p><a href="https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAGwEsAjAJykYE8AKcqajGIgEwCu1OAGcMAcwpxm1AJQACAMQLBouPwWkiCgozhRyWgBZwFaVAB0IdJiw79U1Vo0Uq1GrTr79aAM1YFfkMoBXVSUWtg0lCAHgBaLQNqAH1oqHY5KJCFBIUAd1pSY1oIdnTcBRBrBQUAQQARAGUAGVzErh50xERGRtaFAFIAPkGa2oUYQRjydgAVLDmGgFUsBQBeBUYiQQh+dihxCEF4RloCecWAUQa5gFkFRIW5ptu7uUqARjksiFrGrBNdpJbgYbq9AFNcaNOZzK7AzpgkI9Pq3OHQhotABCCOSSJiKMa2KGo3GtSmMzg7AAwgAJADi1I25nEfigBG0jHYBEOcBS+VMZTJEzp9NyCk+CgAfgpLGAAHJy3DC2qihTDCXS2VgAAKSpVCgWy3hMrl8Tlwp+vwAvr8AFZEUopADWcFYonKIUUeX4cDZwlIKQIvlEBBSDqdrvdwGg8A96TkAF1rCpiBA-LQJIJmKRaCQFH4iIwTGZRKUJCICrRfUEQuFrD5JXlSDAUhIUqHDORGE4iC3DGcAB7scbUKD0ODUZlyprlyuFGvpet4cYANxYtHHIlEzNQ52dHuFS7gERHYH6LSV2ovco+wvXZy3YhHfwmtXUIg5nk2FzldXpVxXnKWB1NSgF4NqTRXAAGkBYBYncWAANJYJ8cEIchWAAEy3sqr5vlM1C5k4ZibEagH4Qovy1L8vwproJAZlmOZ5n8hbFsUZgkGY1AkBItYxOEkQQD4WEIq27adqQ3a9v2pBDi+tRygA8hAPF8QJvKkPqr4Ppu9Dbru+6HpRx6nn+aLgZUFmwuBd6UXpT4mW+tS-ueABqdSXhBcoYShaE+fBiEoThYD2S5uhnnUnnedZQWYQFcV+dhuEGoRxGVmRWDGpa4y0dY9Fpkx2aGKxBZFiWWj5DovEQPxZnCT4ADM4lth2PLSTIskwAOtDDqO46TtOYBzNVCi1fVdYnpEK66RuTnMnQoikIpEx7gQB6rW+DVRQ0gJwZCqWUbUjkGc+BrvpOcBfpoP5RTFB0xdSR0ReSAa0CRzLkQa1ETOFa3GVtEw7TZ6KBTCYP-W+p3bkDb4ftd5C3ZFf4PYF1Lyk0WAva96UfZlhrZRREW-TReXWHREAqKURSbnQABeZiceY6DWBYwI0yt4zpMyFTjD4whiMyAuw8KIvncd42DVOmwzh1Mm8aQky9YOOkRY2eHqwIWGay5zW5a++UQKIJQQKwdToAc6AACSCLQlQWNb6iMKuMiVEQqC5iQO6bEtK2mJmxhK5snwAAxYQALJUC7FMyYeRz8YDWomQA">Open
 in Shinylive</a></p>
 </div>
 </div>
